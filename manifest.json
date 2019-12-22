@@ -1,0 +1,7 @@
+{
+  "name": "Contentful",
+  "id": "789594601370719857",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html"
+}

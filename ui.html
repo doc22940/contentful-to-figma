@@ -1,0 +1,682 @@
+<style>
+  .d-inline {
+    display: inline-block;
+    max-width: 50px;
+  }
+  .icon--button {
+    background: none;
+  }
+  .icon--button:hover {
+    transform: translateZ(0);
+  }
+  .icon--selected {
+    position: relative;
+    z-index: 1000;
+  }
+  .row {
+    display: block;
+    overflow: auto;
+  }
+  .col {
+    float: left;
+    width: 50%;
+  }
+  .row.field > .col {
+    padding: 8px;
+    line-height: 18px;
+  }
+  .field select {
+    display: block;
+    max-width: 100%;
+  }
+  .step-fields {
+    padding-bottom: 100px;
+  }
+  .label {
+    margin-top: -1em;
+  }
+</style>
+<link
+  rel="stylesheet"
+  href="https://thomas-lowry.github.io/figma-plugin-ds/css/figma-plugin-ds.min.css"
+/>
+<style>
+  body {
+    font-family: Inter, system-ui, roboto, sans-serif;
+    font-size: 11px;
+  }
+  [v-cloak] {
+    display: none;
+  }
+  .grid {
+    overflow: auto;
+    padding: 0 8px 8px;
+  }
+  label > .left + select {
+    display: block;
+    margin: 0 0 0 180px;
+    width: 180px;
+  }
+  .footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: auto;
+    padding: 16px;
+  }
+  .footer .btn + .btn {
+    margin-left: 10px;
+  }
+  ol {
+    margin-top: 0;
+    padding-left: 20px;
+  }
+  li {
+    line-height: 18px;
+  }
+  svg {
+    vertical-align: top;
+  }
+  .step-msg {
+    line-height: 200px;
+    text-align: center;
+    font-size: 15px;
+  }
+</style>
+<div id="app" v-cloak>
+  <div class="step step-msg step-loading" v-if="selection.loading">
+    Select a component or a frame
+  </div>
+  <div class="step step-msg step-loading" v-if="step === 'loading'">
+    Reading data from Contentful
+  </div>
+  <div
+    class="step step-msg step-select"
+    v-else-if="!selection.length"
+    @click="checkSelection"
+  >
+    Select a component or a frame and click here
+  </div>
+  <div class="step step-msg step-texts" v-else-if="!texts.length">
+    Selection must contain at least 1 <b>TEXT</b> layer
+  </div>
+  <form
+    class="step step-fields"
+    v-else-if="data.items.length && !mappingConfirmed && !changeCredentials"
+    @submit.prevent="apply"
+  >
+    <div class="row">
+      <div class="col">
+        <div class="section-title">Text node</div>
+      </div>
+      <div class="col">
+        <div class="section-title">Contentful fields</div>
+      </div>
+    </div>
+    <label class="row field" v-for="text in config.mapping">
+      <div class="col">
+        <div class="node-name">{{text.name}}</div>
+      </div>
+      <div class="col">
+        <select class="" v-model="text.contentfulField">
+          <option value="" selected>--- Select an Contentful field ---</option>
+          <option v-for="col in textColumns">{{col}}</option>
+        </select>
+      </div>
+    </label>
+    <div v-if="imageColumns.length && config.images && config.images.length">
+      <div class="row">
+        <div class="col">
+          <div class="section-title">Image node</div>
+        </div>
+        <div class="col">
+          <div class="section-title">Contentful field</div>
+        </div>
+      </div>
+      <label class="row field" v-for="image in config.images">
+        <div class="col">
+          <div class="node-name">{{image.name}}</div>
+        </div>
+        <div class="col">
+          <select class="" v-model="image.contentfulField">
+            <option value="" selected>--- Select a Contentful field ---</option>
+            <option v-for="col in imageColumns">{{col}}</option>
+          </select>
+        </div>
+      </label>
+    </div>
+    <div class="footer">
+      <button
+        type="button"
+        class="button button--secondary"
+        @click.prevent="changeCredentials = true"
+      >
+        Change credentials
+      </button>
+      <button
+        type="button"
+        class="button button--primary"
+        @click.prevent="mappingConfirmed = true"
+      >
+        Next
+      </button>
+    </div>
+  </form>
+  <form
+    class="step step-fields"
+    v-else-if="data.items.length && !changeCredentials"
+    @submit.prevent="apply"
+  >
+    <div class="row">
+      <div class="col">
+        <div class="section-title">Direction</div>
+        <div class="grid">
+          <div class="d-inline">
+            <button
+              type="button"
+              @click="config.grid = ''"
+              class="icon icon--layout-grid-rows icon--button"
+              :class="{'icon--selected': !config.grid }"
+            />
+          </div>
+          <div class="d-inline">
+            <button
+              type="button"
+              @click="config.grid = 'columns'"
+              class="icon icon--layout-grid-columns icon--button"
+              :class="{'icon--selected': config.grid === 'columns' }"
+            />
+          </div>
+          <div class="d-inline">
+            <button
+              type="button"
+              @click="config.grid = 'grid'"
+              class="icon icon--layout-grid-uniform icon--button"
+              :class="{'icon--selected': config.grid === 'grid' }"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="col" v-if="config.grid === 'grid'">
+        <label>
+          <div class="section-title">Columns</div>
+          <input
+            type="number"
+            class="input"
+            v-model="config.columns"
+            placeholder="Default: 3"
+            min="1"
+            max="100"
+          />
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label>
+          <div class="section-title">Spacing</div>
+          <input
+            type="number"
+            class="input"
+            v-model="config.spacing"
+            placeholder="Default: 20px"
+            min="0"
+            max="1000"
+          />
+        </label>
+      </div>
+      <div class="col">
+        <label>
+          <div class="section-title">Max items</div>
+          <input
+            type="number"
+            class="input"
+            v-model="config.limit"
+            placeholder="Default: 100 items"
+            min="1"
+            max="1000"
+          />
+        </label>
+      </div>
+    </div>
+    <div class="footer">
+      <button
+        type="button"
+        class="button button--secondary"
+        @click.prevent="mappingConfirmed = false"
+      >
+        Change field mapping
+      </button>
+      <button
+        type="button"
+        class="button button--primary"
+        @click.prevent="postMessage('close')"
+      >
+        Done
+      </button>
+    </div>
+  </form>
+  <form @submit.prevent="fetchContentFromContentful" v-else>
+    <div class="section-title">Getting started</div>
+    <ol>
+      <li>
+        Go to <a href="https://contentful.com">contentful.com</a> create or
+        choose an existing space
+      </li>
+      <li>Go to Settings > Api keys > Content delivery / preview tokens</li>
+      <li>Copy the delivery api key and space id and paste them below.</li>
+    </ol>
+    <label>
+      <div class="section-title">Space:</div>
+      <input
+        class="input"
+        type="text"
+        v-model="space"
+        placeholder="0w6g..."
+        autofocus
+        required
+      />
+    </label>
+    <label>
+      <div class="section-title">Delivery Access Token:</div>
+      <input
+        class="input"
+        type="text"
+        v-model="deliveryToken"
+        placeholder="0w6gasdqa335fdss..."
+        autofocus
+        required
+      />
+    </label>
+    <label>
+      <div class="section-title">Environment:</div>
+      <input
+        class="input"
+        type="text"
+        v-model="environment"
+        placeholder="master"
+        autofocus
+        required
+      />
+    </label>
+    <label>
+      <div class="section-title">Content Type:</div>
+      <input
+        class="input"
+        type="text"
+        v-model="contentType"
+        placeholder="blog"
+        autofocus
+        required
+      />
+    </label>
+    <div class="footer">
+      <button
+        type="submit"
+        class="button button--primary"
+        :disabled="!validCredentials"
+      >
+        Load Contentful data
+      </button>
+    </div>
+  </form>
+</div>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.common.dev.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash"></script>
+<script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script>
+<script>
+  const emptyArray = []
+  const noData = {
+    items: emptyArray,
+    includes: emptyArray,
+    space: '',
+    contentType: '',
+    environment: 'master',
+    deliveryToken: ''
+  }
+  const render = debounce(async state => {
+    const ok = await requestMessage('renderContentful', state)
+    if (ok === 'sync:selection') {
+      app.checkSelection(true)
+    }
+  }, 200)
+  const app = new Vue({
+    el: '#app',
+    data() {
+      return {
+        config: {
+          grid: 'grid',
+          spacing: null,
+          limit: 6,
+          columns: 3,
+          mapping: emptyArray,
+          images: emptyArray
+        },
+        mappingConfirmed: false,
+        changeCredentials: false,
+        data: noData,
+        selection: emptyArray,
+        step: '',
+        space: '3bc97k4uk5q7', // TODO: remove later
+        deliveryToken:
+          'cad8217f92693dac2350540d49d51dd459a8c9a9c2729dcc90409a96e197cb48',
+        environment: 'master',
+        contentType: 'blog'
+      }
+    },
+    computed: {
+      validCredentials() {
+        return (
+          this.space &&
+          this.deliveryToken &&
+          this.contentType &&
+          this.environment
+        )
+      },
+      texts() {
+        return (this.selection[0] && this.selection[0].texts) || emptyArray
+      },
+      textColumns() {
+        const entryFields = this.data.items[0].fields
+        const fieldsKeys = Object.keys(entryFields)
+
+        return fieldsKeys.filter(
+          field => typeof entryFields[field] === 'string'
+        )
+      },
+      images() {
+        return (this.selection[0] && this.selection[0].images) || emptyArray
+      },
+      imageColumns() {
+        const entryFields = this.data.items[0].fields
+        const fieldsKeys = Object.keys(entryFields)
+        return fieldsKeys.filter(
+          field =>
+            typeof entryFields[field] === 'object' &&
+            entryFields[field].fields &&
+            entryFields[field].fields.file
+        )
+      },
+      rows() {
+        if (!this.data.rows) {
+          return emptyArray
+        }
+        return this.data.rows.map(row => {
+          const out = {}
+          this.data.items.forEach(col => {
+            out[col.name] =
+              (row.cellValuesByColumnId && row.cellValuesByColumnId[col.id]) ||
+              ''
+          })
+          return out
+        })
+      },
+
+      state() {
+        return {
+          contentfulConfig: this.config,
+          space: this.space,
+          items: this.data.items,
+          deliveryToken: this.deliveryToken,
+          environment: this.environment,
+          contentType: this.contentType
+        }
+      }
+    },
+
+    methods: {
+      postMessage,
+      log() {
+        postMessage('debug')
+      },
+      async checkSelection(noConfig) {
+        this.selection = emptyArray
+        this.selection.loading = true
+        this.selection = await requestMessage('selection')
+        if (noConfig) {
+          return
+        }
+        if (!this.selection.length && this.data.items.length) {
+          console.log('selection no len')
+          this.data = noData
+          return
+        }
+        if (!this.texts.length && this.data.items.length) {
+          console.log('selection no text')
+          this.data = noData
+          return
+        }
+        // Get Space
+        const withSpace = this.selection.find(s => s.contentfulSpace)
+        if (!withSpace) {
+          return
+        }
+        console.log('current contentfulSpace', withSpace.contentfulSpace)
+        this.space = withSpace.contentfulSpace
+        // Get data
+        const withData = this.selection.find(s => s.contentfulData)
+        if (!withData) {
+          return
+        }
+        console.log('current contentfulData rows', withData.contentfulData)
+        this.data = withData.contentfulData
+        // Get data
+        const withConfig = this.selection.find(s => s.contentfulConfig)
+        if (!withConfig) {
+          return
+        }
+        console.log(
+          'current contentfulConfig',
+          inert(withConfig.contentfulConfig)
+        )
+        this.config = withConfig.contentfulConfig
+      },
+      async fetchContentFromContentful() {
+        // Fetch data from API
+        this.step = 'loading'
+        this.changeCredentials = false
+        const contentfulClient = contentful.createClient({
+          space: this.space,
+          accessToken: this.deliveryToken
+        })
+        this.data = noData
+        const data = await contentfulClient.getEntries({
+          content_type: this.contentType,
+          order: '-sys.createdAt'
+        })
+        this.step = ''
+        if (!data.items.length) {
+          return notify('could not fetch data from Contentful')
+        }
+
+        // Selection validation (deprecated?)
+        if (!this.selection.length) {
+          return msg('select', 'space')
+        }
+        const texts = this.selection[0].texts
+        if (!texts || !texts.length) {
+          return msg('texts', 'space')
+        }
+        // Prepare an empty mapping
+        this.data = data
+        this.config.mapping = inert(this.getMapping())
+        this.config.images = inert(this.getImages())
+        // Alright, let's remember for next time
+        requestMessage('saveContentfulSpace', this.space)
+        requestMessage('saveContentfulData', this.data)
+      },
+      async apply() {
+        const v = this.state
+        console.log('state', this.state)
+        if (!v || !v.space || !v.contentfulConfig.mapping.length) {
+          return
+        }
+        // debounced
+        render(v)
+      },
+      getMapping() {
+        if (
+          this.selection[0] &&
+          this.selection[0].contentfulConfig &&
+          this.selection[0].contentfulConfig.mapping
+        ) {
+          return this.selection[0].contentfulConfig.mapping
+        }
+        return this.texts.map(t => {
+          t.contentfulField = ''
+          return t
+        })
+      },
+      getImages() {
+        if (
+          this.selection[0] &&
+          this.selection[0].contentfulConfig &&
+          this.selection[0].contentfulConfig.images
+        ) {
+          return this.selection[0].contentfulConfig.images
+        }
+        return this.images.map(t => {
+          t.contentfulField = ''
+          return t
+        })
+      }
+    },
+    mounted() {
+      this.checkSelection()
+    },
+    watch: {
+      rows() {
+        this.apply()
+      },
+      config: {
+        deep: true,
+        handler(v) {
+          this.apply()
+        }
+      }
+    }
+  })
+  function notify(msg) {
+    postMessage('notify', msg)
+  }
+  function postMessage(type, data) {
+    const id = Math.random().toString(36)
+    window.parent.postMessage({ pluginMessage: { id, type, data } }, '*')
+    return id
+  }
+  function requestMessage(type, data) {
+    return new Promise(resolve => {
+      const id = postMessage('request:' + type, JSON.stringify(data))
+      window.addEventListener('message', onmessage)
+      function onmessage(evt) {
+        const message = evt.data.pluginMessage
+        if (message && message.id === id) {
+          resolve(JSON.parse(message.data))
+          window.removeEventListener('message', onmessage)
+        }
+      }
+    })
+  }
+  function responseMessage(msg, data) {
+    window.parent.postMessage(
+      {
+        pluginMessage: {
+          id: msg.id,
+          type: msg.type.replace('request:', 'response:'),
+          data: JSON.stringify(data)
+        }
+      },
+      '*'
+    )
+  }
+  function inert(data) {
+    return JSON.parse(JSON.stringify(data))
+  }
+  function debounce(fn, wait) {
+    var timeout
+    return function() {
+      const args = arguments
+      clearTimeout(timeout)
+      timeout = setTimeout(function() {
+        fn.apply(this, args)
+      }, wait || 1)
+    }
+  }
+  function scrape(space, environment, contentType, deliveryToken) {
+    if (ls(space, environment, contentType)) {
+      console.log('localStorage scrape')
+      return ls(space, environment, contentType, deliveryToken)
+    }
+    console.log('scrape')
+    const contentfulClient = contentful.createClient({
+      space,
+      accessToken: deliveryToken,
+      environment
+    })
+    return contentfulClient
+      .getEntries({
+        content_type: this.contentType
+      })
+      .then(data => {
+        if (!data || !data.items || data.items.length === 0) {
+          return noData
+        }
+        ls(space, environment, contentType, data)
+        return data
+      })
+      .catch(e => {
+        e.message && notify(e.message)
+        return noData
+      })
+      .then(data => {
+        data.space = space
+        data.environment = environment
+        data.contentType = contentType
+        return data
+      })
+  }
+  function serialize(obj) {
+    const str = []
+    for (const p in obj) {
+      if (obj.hasOwnProperty(p) && obj[p]) {
+        str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]))
+      }
+    }
+    return str.join('&')
+  }
+  function ls(key, value) {
+    try {
+      const storage =
+        typeof localStorage !== 'undefined' ? localStorage : figma.clientStorage
+      if (typeof value === 'undefined') {
+        return JSON.parse(storage[key] || 'null')
+      } else {
+        storage[key] = JSON.stringify(value)
+        return value
+      }
+    } catch (e) {}
+  }
+  function msg(id, after) {
+    alert(id)
+  }
+  imageDownloadService()
+  function imageDownloadService() {
+    window.addEventListener('message', onmessage)
+    async function onmessage(evt) {
+      const msg = evt.data.pluginMessage
+      if (msg && msg.type === 'request:downloadImage') {
+        console.log(msg.data)
+        const url = JSON.parse(msg.data)
+        responseMessage(msg, await urlToImage(url))
+      }
+    }
+  }
+  function urlToImage(imgUrl) {
+    return fetch(imgUrl)
+      .then(r => r.arrayBuffer())
+      .then(a => {
+        return Array.from(new Uint8Array(a))
+      })
+  }
+</script>
