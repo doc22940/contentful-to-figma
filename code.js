@@ -1,5 +1,3 @@
-// This plugin will open a modal to prompt the user to enter a number, and
-// it will then create that many rectangles on the screen.
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,15 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// This file holds the main code for the plugins. It has access to the *document*.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser enviroment (see documentation).
-// This shows the HTML page in "ui.html".
 const SPACING = 20;
 const requests = {};
 const imageCache = {};
-// console.log('selection', figma.currentPage.selection)
-// console.log(this, figma)
 figma.showUI(__html__, {
     width: 500,
     height: 400
@@ -26,12 +18,14 @@ figma.showUI(__html__, {
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
-    // One way of distinguishing between different types of messages sent from
-    // your HTML page is to use an object with a "type" property like this.
     const { data } = tryParse(msg);
-    console.log('msg', msg.type);
+    console.log(msg.type);
     if (msg.type === 'notify') {
         return figma.notify(msg.data);
+    }
+    if (msg.type === 'close') {
+        figma.closePlugin();
+        return;
     }
     if (requests[msg.id]) {
         requests[msg.id].resolve(data);
@@ -101,9 +95,7 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
         }
         const textLookup = getArrayMapping(original, mapping);
         const imageLookup = getArrayMapping(original, images);
-        console.log('imageLookup', imageLookup);
         yield loadFonts(mapping);
-        // console.log('lo', textLookup)
         const instanceId = instance.id;
         instance.setPluginData('clonedFrom', instanceId);
         const parent = instance.parent;
@@ -138,9 +130,6 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
                 i++;
             }
         }
-        // Make sure to close the plugin when you're done. Otherwise the plugin will
-        // keep running, which shows the cancel button at the bottom of the screen.
-        // figma.closePlugin()
     }
     function loadFonts(mapping) {
         return Promise.all(mapping.map(node => figma.getNodeById(node.id)).map(loadFont));
