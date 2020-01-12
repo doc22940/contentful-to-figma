@@ -84,10 +84,16 @@
   }
 </style>
 <div id="app" v-cloak>
-  <div class="step step-msg step-loading" v-if="selection.loading">
+  <div
+    class="step step-msg step-loading"
+    v-if="selection.loading"
+  >
     Select a component or a frame
   </div>
-  <div class="step step-msg step-loading" v-if="step === 'loading'">
+  <div
+    class="step step-msg step-loading"
+    v-if="step === 'loading'"
+  >
     Reading data from Contentful
   </div>
   <div
@@ -97,7 +103,10 @@
   >
     Select a component or a frame and click here
   </div>
-  <div class="step step-msg step-texts" v-else-if="!texts.length">
+  <div
+    class="step step-msg step-texts"
+    v-else-if="!texts.length"
+  >
     Selection must contain at least 1 <b>TEXT</b> layer
   </div>
   <form
@@ -119,12 +128,18 @@
       </div>
       <div class="col">
         <select class="" v-model="text.contentfulField">
-          <option value="" selected>--- Select an Contentful field ---</option>
-          <option v-for="col in textColumns">{{col}}</option>
+          <option value="" selected
+            >--- Select an Contentful field ---</option
+          >
+          <option v-for="col in textColumns"
+            >{{col}}</option
+          >
         </select>
       </div>
     </label>
-    <div v-if="imageColumns.length && config.images && config.images.length">
+    <div
+      v-if="imageColumns.length && config.images && config.images.length"
+    >
       <div class="row">
         <div class="col">
           <div class="section-title">Image node</div>
@@ -133,14 +148,21 @@
           <div class="section-title">Contentful field</div>
         </div>
       </div>
-      <label class="row field" v-for="image in config.images">
+      <label
+        class="row field"
+        v-for="image in config.images"
+      >
         <div class="col">
           <div class="node-name">{{image.name}}</div>
         </div>
         <div class="col">
           <select class="" v-model="image.contentfulField">
-            <option value="" selected>--- Select a Contentful field ---</option>
-            <option v-for="col in imageColumns">{{col}}</option>
+            <option value="" selected
+              >--- Select a Contentful field ---</option
+            >
+            <option v-for="col in imageColumns"
+              >{{col}}</option
+            >
           </select>
         </div>
       </label>
@@ -260,11 +282,20 @@
     <div class="section-title">Getting started</div>
     <ol>
       <li>
-        Go to <a href="https://contentful.com">contentful.com</a> create or
-        choose an existing space
+        Go to
+        <a href="https://contentful.com" target="_blank"
+          >contentful.com</a
+        >
+        create or choose an existing space
       </li>
-      <li>Go to Settings > Api keys > Content delivery / preview tokens</li>
-      <li>Copy the delivery api key and space id and paste them below.</li>
+      <li
+        >Go to Settings > Api keys > Content delivery /
+        preview tokens</li
+      >
+      <li
+        >Copy the delivery api key and space id and paste
+        them below.</li
+      >
     </ol>
     <label>
       <div class="section-title">Space:</div>
@@ -278,7 +309,9 @@
       />
     </label>
     <label>
-      <div class="section-title">Delivery Access Token:</div>
+      <div class="section-title"
+        >Delivery Access Token:</div
+      >
       <input
         class="input"
         type="text"
@@ -312,6 +345,12 @@
     </label>
     <div class="footer">
       <button
+        class="button button--secondary"
+        @click.prevent="LoadExampleData"
+      >
+        Use an example space
+      </button>
+      <button
         type="submit"
         class="button button--primary"
         :disabled="!validCredentials"
@@ -336,7 +375,10 @@
     deliveryToken: ''
   }
   const render = debounce(async state => {
-    const ok = await requestMessage('renderContentful', state)
+    const ok = await requestMessage(
+      'renderContentful',
+      state
+    )
     if (ok === 'sync:selection') {
       app.checkSelection(true)
     }
@@ -358,7 +400,7 @@
         data: noData,
         selection: emptyArray,
         step: '',
-        space: '', 
+        space: '',
         deliveryToken: '',
         environment: 'master',
         contentType: 'blog'
@@ -374,7 +416,10 @@
         )
       },
       texts() {
-        return (this.selection[0] && this.selection[0].texts) || emptyArray
+        return (
+          (this.selection[0] && this.selection[0].texts) ||
+          emptyArray
+        )
       },
       textColumns() {
         const entryFields = this.data.items[0].fields
@@ -385,7 +430,10 @@
         )
       },
       images() {
-        return (this.selection[0] && this.selection[0].images) || emptyArray
+        return (
+          (this.selection[0] && this.selection[0].images) ||
+          emptyArray
+        )
       },
       imageColumns() {
         const entryFields = this.data.items[0].fields
@@ -405,7 +453,8 @@
           const out = {}
           this.data.items.forEach(col => {
             out[col.name] =
-              (row.cellValuesByColumnId && row.cellValuesByColumnId[col.id]) ||
+              (row.cellValuesByColumnId &&
+                row.cellValuesByColumnId[col.id]) ||
               ''
           })
           return out
@@ -426,6 +475,13 @@
 
     methods: {
       postMessage,
+      LoadExampleData() {
+        this.space = '6xm9kr55qhtm'
+        this.deliveryToken =
+          'MslIrNfH6IJDDpDThQmWGvsZQW_xgyr7nDDbDEYjt2c'
+        this.environment = 'master'
+        this.contentType = 'blogPost'
+      },
       log() {
         postMessage('debug')
       },
@@ -436,7 +492,10 @@
         if (noConfig) {
           return
         }
-        if (!this.selection.length && this.data.items.length) {
+        if (
+          !this.selection.length &&
+          this.data.items.length
+        ) {
           console.log('selection no len')
           this.data = noData
           return
@@ -447,21 +506,33 @@
           return
         }
         // Get Space
-        const withSpace = this.selection.find(s => s.contentfulSpace)
+        const withSpace = this.selection.find(
+          s => s.contentfulSpace
+        )
         if (!withSpace) {
           return
         }
-        console.log('current contentfulSpace', withSpace.contentfulSpace)
+        console.log(
+          'current contentfulSpace',
+          withSpace.contentfulSpace
+        )
         this.space = withSpace.contentfulSpace
         // Get data
-        const withData = this.selection.find(s => s.contentfulData)
+        const withData = this.selection.find(
+          s => s.contentfulData
+        )
         if (!withData) {
           return
         }
-        console.log('current contentfulData rows', withData.contentfulData)
+        console.log(
+          'current contentfulData rows',
+          withData.contentfulData
+        )
         this.data = withData.contentfulData
         // Get data
-        const withConfig = this.selection.find(s => s.contentfulConfig)
+        const withConfig = this.selection.find(
+          s => s.contentfulConfig
+        )
         if (!withConfig) {
           return
         }
@@ -486,7 +557,9 @@
         })
         this.step = ''
         if (!data.items.length) {
-          return notify('could not fetch data from Contentful')
+          return notify(
+            'could not fetch data from Contentful'
+          )
         }
 
         // Selection validation (deprecated?)
@@ -508,7 +581,11 @@
       async apply() {
         const v = this.state
         console.log('state', this.state)
-        if (!v || !v.space || !v.contentfulConfig.mapping.length) {
+        if (
+          !v ||
+          !v.space ||
+          !v.contentfulConfig.mapping.length
+        ) {
           return
         }
         // debounced
@@ -561,12 +638,18 @@
   }
   function postMessage(type, data) {
     const id = Math.random().toString(36)
-    window.parent.postMessage({ pluginMessage: { id, type, data } }, '*')
+    window.parent.postMessage(
+      { pluginMessage: { id, type, data } },
+      '*'
+    )
     return id
   }
   function requestMessage(type, data) {
     return new Promise(resolve => {
-      const id = postMessage('request:' + type, JSON.stringify(data))
+      const id = postMessage(
+        'request:' + type,
+        JSON.stringify(data)
+      )
       window.addEventListener('message', onmessage)
       function onmessage(evt) {
         const message = evt.data.pluginMessage
@@ -602,10 +685,20 @@
       }, wait || 1)
     }
   }
-  function scrape(space, environment, contentType, deliveryToken) {
+  function scrape(
+    space,
+    environment,
+    contentType,
+    deliveryToken
+  ) {
     if (ls(space, environment, contentType)) {
       console.log('localStorage scrape')
-      return ls(space, environment, contentType, deliveryToken)
+      return ls(
+        space,
+        environment,
+        contentType,
+        deliveryToken
+      )
     }
     console.log('scrape')
     const contentfulClient = contentful.createClient({
@@ -618,7 +711,11 @@
         content_type: this.contentType
       })
       .then(data => {
-        if (!data || !data.items || data.items.length === 0) {
+        if (
+          !data ||
+          !data.items ||
+          data.items.length === 0
+        ) {
           return noData
         }
         ls(space, environment, contentType, data)
@@ -639,7 +736,11 @@
     const str = []
     for (const p in obj) {
       if (obj.hasOwnProperty(p) && obj[p]) {
-        str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]))
+        str.push(
+          encodeURIComponent(p) +
+            '=' +
+            encodeURIComponent(obj[p])
+        )
       }
     }
     return str.join('&')
@@ -647,7 +748,9 @@
   function ls(key, value) {
     try {
       const storage =
-        typeof localStorage !== 'undefined' ? localStorage : figma.clientStorage
+        typeof localStorage !== 'undefined'
+          ? localStorage
+          : figma.clientStorage
       if (typeof value === 'undefined') {
         return JSON.parse(storage[key] || 'null')
       } else {

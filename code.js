@@ -12,7 +12,7 @@ const requests = {};
 const imageCache = {};
 figma.showUI(__html__, {
     width: 500,
-    height: 400
+    height: 450
 });
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
@@ -35,13 +35,17 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
         for (var i = 0; i < 10; ++i) {
             const selection = getOriginalSelection();
             if (selection) {
-                return responseMessage(msg, [fromSelection(selection)]);
+                return responseMessage(msg, [
+                    fromSelection(selection)
+                ]);
             }
             yield delay(1000);
         }
         const selection = getOriginalSelection();
         if (selection) {
-            return responseMessage(msg, [fromSelection(selection)]);
+            return responseMessage(msg, [
+                fromSelection(selection)
+            ]);
         }
         return responseMessage(msg, []);
     }
@@ -61,7 +65,8 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
         const { mapping, images } = contentfulConfig;
         const limit = contentfulConfig.limit || 100;
         const spacing = parseInt(contentfulConfig.spacing) || 20;
-        const grid = ['columns', 'grid'].indexOf(contentfulConfig.grid) !== -1
+        const grid = ['columns', 'grid'].indexOf(contentfulConfig.grid) !==
+            -1
             ? contentfulConfig.grid
             : 'rows';
         const columnCount = contentfulConfig.grid === 'grid'
@@ -132,12 +137,17 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
         }
     }
     function loadFonts(mapping) {
-        return Promise.all(mapping.map(node => figma.getNodeById(node.id)).map(loadFont));
+        return Promise.all(mapping
+            .map(node => figma.getNodeById(node.id))
+            .map(loadFont));
     }
     function interpolateImage(node, value) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('image: ', value);
-            if (value && value.fields && value.fields.file && value.fields.file.url) {
+            if (value &&
+                value.fields &&
+                value.fields.file &&
+                value.fields.file.url) {
                 const image = yield downloadImage(`https:${value.fields.file.url}`);
                 const paint = JSON.parse(JSON.stringify(node.fills[0]));
                 paint.imageHash = figma.createImage(new Uint8Array(image)).hash;
@@ -154,7 +164,8 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
         return instance;
     }
     function loadFont(node) {
-        return node.type === 'TEXT' && figma.loadFontAsync(node.fontName);
+        return (node.type === 'TEXT' &&
+            figma.loadFontAsync(node.fontName));
     }
     function fromSelection(node) {
         return {
@@ -264,7 +275,9 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
             return [];
         const images = [];
         traverse(layer, layer => {
-            if (layer.fills && layer.fills[0] && layer.fills[0].type === 'IMAGE') {
+            if (layer.fills &&
+                layer.fills[0] &&
+                layer.fills[0].type === 'IMAGE') {
                 images.push({
                     id: layer.id,
                     name: layer.name,
@@ -305,7 +318,8 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
             const toRemove = [];
             const id = instance.id;
             traverse(figma.currentPage, node => {
-                if (node.getPluginData('clonedFrom') === id && node.id !== id) {
+                if (node.getPluginData('clonedFrom') === id &&
+                    node.id !== id) {
                     toRemove.push(node);
                 }
             });
