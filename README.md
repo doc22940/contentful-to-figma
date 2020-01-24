@@ -31,5 +31,5 @@ Give a ⭐️ if this project helped you!
 
 ## 📝 License
 
-Copyright © 2019 [Khaled Garbaya <kgarbaya@gmail.com>](https://github.com/Khaledgarbaya).<br />
+Copyright © 2020 [Khaled Garbaya <kgarbaya@gmail.com>](https://github.com/Khaledgarbaya).<br />
 This project is [MIT](https://github.com/Khaledgarbaya/contentful-to-figma/blob/master/LICENSE) licensed.
