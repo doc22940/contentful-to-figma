@@ -21,9 +21,22 @@ To get the TypeScript compiler working:
 
 That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
 
+## Demo
+You can find the video demo [here](https://www.youtube.com/watch?v=7uJ05O2DgjM)
+
+## How do I get my credentials:
+
+1-Go to contentful.com create or choose an existing space
+
+2- Go to Settings > Api keys > Content delivery / preview tokens
+
+3- Copy the delivery api key and space id and paste them.
+
+
 ## 🤝 Contributing
 
 Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/Khaledgarbaya/use-one-graph/issues).
+
 
 ## Show your support
 
