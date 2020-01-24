@@ -20,3 +20,16 @@ To get the TypeScript compiler working:
     you reopen Visual Studio Code.
 
 That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+
+## 🤝 Contributing
+
+Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/Khaledgarbaya/use-one-graph/issues).
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+## 📝 License
+
+Copyright © 2019 [Khaled Garbaya <kgarbaya@gmail.com>](https://github.com/Khaledgarbaya).<br />
+This project is [MIT](https://github.com/Khaledgarbaya/contentful-to-figma/blob/master/LICENSE) licensed.
