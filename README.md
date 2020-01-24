@@ -1,17 +1,16 @@
-This plugin template uses Typescript. If you are familiar with Javascript, Typescript will
-look very familiar. In fact, valid Javascript code is already valid Typescript code.
+<h1 align="center">Welcome to Contentful to Figma plugin 👋</h1>
 
-Typescript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
 
-For more information, visit https://www.typescriptlang.org/
+## Author
 
-Using Typescript requires a compiler to convert Typescript (code.ts) into Javascript (code.js)
-for the browser to run.
+👤 **Khaled Garbaya <kgarbaya@gmail.com>**
+
+* Twitter: [@khaled_garbaya](https://twitter.com/khaled_garbaya)
+* Github: [@Khaledgarbaya](https://github.com/Khaledgarbaya)
+
+## Usage
 
 To get the TypeScript compiler working:
-
 1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
 2. Install the TypeScript compiler globally: `sudo npm install -g typescript`.
 3. Open this directory in Visual Studio Code.
