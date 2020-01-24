@@ -1,5 +1,6 @@
 <h1 align="center">Welcome to Contentful to Figma plugin 👋</h1>
 
+<img align="center" src="https://github.com/Khaledgarbaya/contentful-to-figma/raw/master/thumbnail.png"/>
 
 ## Author
 
